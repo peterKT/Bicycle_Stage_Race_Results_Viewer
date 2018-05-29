@@ -998,8 +998,9 @@ while ( $counter2 <= $new_stages )
 			print "\n\nRider ID NOT DEFINED\n";
 			$errors++;
 			print "This line has a name: $full_name at position $position and rider number: $rider_no\n";
-			print "If any of these three values is EMPTY or erroneous, you need to fix them.\n";
+			print "If any of these three values is EMPTY or erroneous, you need to fix the cause.\n";
 			print "The stage number is $stage_no.\n";
+			die "Upload failed. Note clue above; the error should be on a nearby line.\n";
 		}
 
 
