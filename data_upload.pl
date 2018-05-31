@@ -234,15 +234,31 @@ while ( $count <= $num_files )
 		$found_match = 0;
 		$problems = 0;
 		@problem_names = ();
+		$line_no = 0;
 
 		foreach (<STAGES>) 
+
+
 
 		# Take each rider name (in full) and try to match it with each name in the rider dictionary (new_names.txt)
 
 		{
+			$line_no++;	# Keep track of line number for error correction if needed
+#			print "I am at line number $line_no\n";
+
 			@array1 = ();
 			chomp;
 			@array1 = split /\t/, $_; # Capture line of text from the file 
+
+			# STOP if no nationality. Throws off name definition. Fix erroneous line first.
+
+
+				if ($_ =~ /\(/ ) {
+					print "Found parens, OK to go ahead.\n";
+				} else {
+				die "Found a line $line_no with no nationality. You need to fix and re-run me.\n";
+				}
+
 
 			@array2 = ();
 			$counter = 0;
@@ -256,6 +272,7 @@ while ( $count <= $num_files )
 					$counter++;
 				}
 			}
+
 
 			# Got name. 
 
@@ -940,7 +957,6 @@ sub convert_to_date {
 
 $counter = 0;
 $counter2 = 1;
-$errors = 0;
 $upload_file_no = $start_at;
 
 
@@ -958,10 +974,11 @@ while ( $counter2 <= $new_stages )
 
 	$stage_no = $upload_file_no;
 	$counter = 0;
+	$line_no = 0;
 
 	foreach (<STAGES>) 
 	{
-
+		$line_no++;
 		# Take each rider name (in full) and try to match it with each name in the rider dictionary (new_correct_names.txt)
 
 		@array = ();
@@ -974,12 +991,22 @@ while ( $counter2 <= $new_stages )
 		foreach $elem(@array) {
 	
 			if ( $elem =~ /^\(/ ) {
+				$nat = $elem;
 				last;	# Stop right here at the nationality field.
 	  			} else {
 				push(@array2, "$elem");
 				$elements++;
 			}
 		}
+		
+		# STOP if no nationality. Throws off name definition. Fix erroneous line first.
+		if (not defined ($nat) ) {
+				
+			print "\n\nRider nationality NOT DEFINED on line $line_no.\n";
+			print "The stage number is $stage_no.\n";
+			die "Upload failed. Note clue above.\n";
+		}
+
 
 		# Got name. 
 
@@ -995,9 +1022,8 @@ while ( $counter2 <= $new_stages )
 
 		if (not defined ($rider_no) ) {
 				
-			print "\n\nRider ID NOT DEFINED\n";
-			$errors++;
-			print "This line has a name: $full_name at position $position and rider number: $rider_no\n";
+			print "\n\nRider ID NOT DEFINED on line $line_no.\n";
+			print "This line has a name: $full_name, country is $nat, at position $position and rider number: $rider_no\n";
 			print "If any of these three values is EMPTY or erroneous, you need to fix the cause.\n";
 			print "The stage number is $stage_no.\n";
 			die "Upload failed. Note clue above; the error should be on a nearby line.\n";
