@@ -11,9 +11,13 @@ chomp ($race_name);
 
 print "Great. The directory where we will be storing files is $race_name\n";
 
-$newdir = "/tmp/races/$race_name";
+#$newdir = "/tmp/races/$race_name";
+$newdir = "/tmp/races";
 mkpath ($newdir);
 chmod(0777, $newdir);
+$newdir = "/tmp/races/$race_name";
+mkpath ($newdir);
+chmod(0766, $newdir);
 
 #Store the name of the directory so it can be found later
 

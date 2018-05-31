@@ -7,6 +7,10 @@
 # To use, go to the directory containing this
 # program and type: ./setup_tables.pl 
 
+# NOTE: This utility only works on stage1.csv and is used purely for preliminary work: adding new rider names,
+# adding countries and teams not seen before, updating rider's team membership, and preparing a results
+# table.
+
 
 use DBI;
 
@@ -17,6 +21,7 @@ chomp ($admin_name);
 print "\nNow please provide the password: \n";
 $admin_pw = <STDIN>;
 chomp ($admin_pw);
+
 
 print "Great. Give me a sec, I will try using $admin_name and $admin_pw.\n";
 
@@ -34,41 +39,16 @@ print "Just a check to make sure we got the path right: /tmp/races/$race_name\n"
 close GET_RACENAME;
 
 
-# Figure out how many stages there are
+# Create a results table for this event based on number of stages.
 
- $figure_out = 1;
- $stages = 0;
 
-while ($figure_out < 23)
- {
-	$filename = "/tmp/races/$race_name/stage$figure_out.csv";
-	if (-e $filename) {
-	  $stages++;
-	}	 
-	$figure_out++;
- }
-
-print "The number of stages is $stages\n";
-
-# Create a results table for this event
-
-my $query1 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, s1 SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', t1 TIME, PRIMARY KEY (rider_id) )";
+my $query1 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, PRIMARY KEY (rider_id) )";
 
 my $sth = $dbh->prepare($query1);
 
 $sth->execute();
 
-$counter = 2;
 
-while ($counter <= $stages) {
-
-  my $query2 = "ALTER TABLE $race_name ADD COLUMN s$counter SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', ADD COLUMN t$counter TIME";
-
-  my $sth = $dbh->prepare($query2);
-  $sth->execute();
-  $counter++;
-
-}
 
 $counter = 0;
 
@@ -299,7 +279,7 @@ $sth->execute();
 
 unlink 
 ("/tmp/races/rider_names.txt",
-#"/tmp/races/new_names.txt", We will need this one for use with fix_names.pl
+"/tmp/races/new_names.txt", 
 "/tmp/races/rider_nats.txt",
 "/tmp/races/rider_teams.txt");
 
@@ -402,7 +382,7 @@ sub get_team_id {
 
 $errors = 0;
 
-foreach (<RESULTS>) # Build an array @array3 consisting of rider names 
+foreach (<RESULTS>) # Build an array @array2 consisting of rider names 
 {
 	@array1 = ();
 	chomp;
@@ -528,8 +508,6 @@ if ($errors == 0) {
 
 unlink ("/tmp/races/countries.txt","/tmp/races/teams.txt");
 
-# We will use riders.txt later to check for errors with check_upload.pl
-
 # Now SQL query to update rider table using the handy upload.txt file.
 #Then go ahead and load stage results.
 
@@ -545,6 +523,11 @@ $sth->execute();
 my $query2 = "UPDATE riders,riders_temp SET riders.country_id = riders_temp.country_id WHERE riders.rider_id = riders_temp.rider_id";
 my $sth = $dbh->prepare($query2);
 $sth->execute();
+
+# Because the team ID is newly created from stage1.csv, it effectively updates previously entered
+# team IDS for every rider in the event, taking care of cases where riders may have switched teams
+# since last event was processed. Also works in reverse (older events added now will show correct
+# team membership at time of that event).
 
 my $query3 = "UPDATE riders,riders_temp SET riders.team_id = riders_temp.team_id WHERE riders.rider_id = riders_temp.rider_id";
 my $sth = $dbh->prepare($query3);

@@ -5,15 +5,15 @@ use Term::ANSIColor;
 #OUTPUT STAGE GC LIST WITH COMPARISON TO 
 #PREVIOUS STAGE
 
-print "To identify the event you are interested in, I need to access the database\n";
-print "using an account with at least read permissions. Please enter the user name here: \n";  
+print "\n\tTo identify the event you are interested in, I need to access the database\n";
+print "\tusing an account with at least read permissions. Please enter the user name here: \n";  
 $admin_name = <STDIN>;
 chomp ($admin_name);
-print "\nNow please provide the password: \n";
+print "\n\tNow please provide the password: \n";
 $admin_pw = <STDIN>;
 chomp ($admin_pw);
 
-print "Great. Give me a sec, I will try using $admin_name and $admin_pw.\n";
+print "\tGreat. Give me a sec, I will try using $admin_name and $admin_pw.\n";
 
 my $server = 'localhost';
 my $db = 'races';
@@ -77,11 +77,12 @@ $team_space = $longest_team + 5;
 
 print "Using $name_space spaces for names and $team_space spaces for teams.\n";
 
-my $query01 = "SELECT COUNT(*) totalColumns FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name='$event' AND TABLE_SCHEMA = 'races'";
-my $sth = $dbh->prepare($query01);
-$sth->execute();
 
-while (my $row = $sth->fetchrow_arrayref) 
+my $query01 = "SELECT COUNT(*) totalColumns FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name='$event' AND TABLE_SCHEMA = 'races'";
+my $sth01 = $dbh->prepare($query01);
+$sth01->execute();
+
+while (my $row = $sth01->fetchrow_arrayref) 
 	{
 		$total_stages = (@$row[0] - 1) / 2;
 	}
@@ -89,13 +90,12 @@ while (my $row = $sth->fetchrow_arrayref)
 $get_another = 'y';
 
 while ($get_another eq 'y') {
-# print "The value of get_another is TOP $get_another\n";
 
-print "\nPlease enter a stage number. I will report the GC\n";
-print "results and show how each rider\'s standing compares\n";
-print "to the previous stage: plus sign for up, minus for down.\n";
+print "\n\tPlease enter a stage number. I will report the GC\n";
+print "\tresults and show how each rider\'s standing compares\n";
+print "\tto the previous stage: plus sign for up, minus for down.\n";
 
-print "\nSo go ahead, enter a stage number between 1 and $total_stages.\n";
+print "\n\tSo go ahead, enter a stage number between 1 and $total_stages.\n";
 
 $stage_no = <STDIN>;
 chomp($stage_no);
@@ -114,13 +114,6 @@ $sth->execute();
 
 
 print "Results for stage $stage_no. Last number shows change from previous stage.\n\n";
-#$name_space = 27;
-#$name_space = 40;
-#print "Using $name_space for the number of spaces in first column.\n";
-#$team_space = 35;
-#$team_space = 50;
-#print "Using $team_space for the number of spaces in third column.\n";
-# Alternative: printf REPORT above
 
 printf "%" . $name_space . "s %8s %" . $team_space . "s %6s %12s %6s %7s\n", "Name","Country","Team","Place", "Time","Prev","Change";
 
