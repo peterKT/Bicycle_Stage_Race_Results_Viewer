@@ -32,22 +32,25 @@ my $password = $admin_pw;
 
 my $dbh = DBI->connect("dbi:mysql:$db:$server", $username, $password);
 
-
 open GET_RACENAME, "<", "/tmp/races/race_name.txt";
 $race_name = <GET_RACENAME>;
 print "Just a check to make sure we got the path right: /tmp/races/$race_name\n";
 close GET_RACENAME;
 
+# This section to correct race results table which was incomplete in version 3.0
 
-# Create a results table for this event based on number of stages.
+print "Great. We are setting up a results table for $race_name.\n";
+
+# This is wrong. stage columns must be added by data_upload.pl
+
+#my $query0 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, total_stages SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', s1 SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', t1 TIME, PRIMARY KEY (rider_id) )";
+
+my $query0 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, total_stages SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', PRIMARY KEY (rider_id) )";
 
 
-my $query1 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, PRIMARY KEY (rider_id) )";
-
-my $sth = $dbh->prepare($query1);
+my $sth = $dbh->prepare($query0);
 
 $sth->execute();
-
 
 
 $counter = 0;
@@ -120,23 +123,23 @@ close WRITE_NATS;
 
 system 'sort -u /tmp/races/rider_nats.txt > /tmp/races/new_nats.txt';
 
-my $query0 = "CREATE TABLE countries_temp LIKE countries";
-my $sth = $dbh->prepare($query0);
+my $query4 = "CREATE TABLE countries_temp LIKE countries";
+my $sth = $dbh->prepare($query4);
 $sth->execute();
 
-my $query1 = "LOAD DATA INFILE '/tmp/races/new_nats.txt' INTO TABLE countries_temp(country)";
-my $sth = $dbh->prepare($query1);
+my $query5 = "LOAD DATA INFILE '/tmp/races/new_nats.txt' INTO TABLE countries_temp(country)";
+my $sth = $dbh->prepare($query5);
 $sth->execute();
 
 # Next, take new country names and add them to the database, making sure to ignore duplicates.
 
-my $query2 = "INSERT INTO countries(country) SELECT country FROM countries_temp  where country NOT IN (SELECT country FROM countries)";
+my $query6 = "INSERT INTO countries(country) SELECT country FROM countries_temp  where country NOT IN (SELECT country FROM countries)";
 
-my $sth = $dbh->prepare($query2);
+my $sth = $dbh->prepare($query6);
 $sth->execute();
 
-my $query3 = "DROP TABLE countries_temp";
-my $sth = $dbh->prepare($query3);
+my $query7 = "DROP TABLE countries_temp";
+my $sth = $dbh->prepare($query7);
 $sth->execute();
 
 # Now do the same for rider teams
@@ -220,12 +223,12 @@ close WRITE_TEAMS_CLEAN;
 # Get rid of duplicates. 
 system 'sort -u /tmp/races/rider_teams_clean.txt > /tmp/races/no_duplicate_teams.txt';
 
-my $query3 = "CREATE TABLE teams_temp LIKE teams";
-my $sth = $dbh->prepare($query3);
+my $query8 = "CREATE TABLE teams_temp LIKE teams";
+my $sth = $dbh->prepare($query8);
 $sth->execute();
 
-my $query4 = "LOAD DATA INFILE '/tmp/races/no_duplicate_teams.txt' INTO TABLE teams_temp(team)";
-my $sth = $dbh->prepare($query4);
+my $query9 = "LOAD DATA INFILE '/tmp/races/no_duplicate_teams.txt' INTO TABLE teams_temp(team)";
+my $sth = $dbh->prepare($query9);
 $sth->execute();
 
 # Next, take new team names and add them to the database, making sure to ignore those already
@@ -238,25 +241,25 @@ $sth->execute();
 # for riders and countries.
 
 
-my $query5 = "INSERT INTO teams(team) SELECT team FROM teams_temp where team NOT IN (SELECT team FROM teams)";
+my $query10 = "INSERT INTO teams(team) SELECT team FROM teams_temp where team NOT IN (SELECT team FROM teams)";
 
-my $sth = $dbh->prepare($query5);
+my $sth = $dbh->prepare($query10);
 $sth->execute();
 
-my $query6 = "DROP TABLE teams_temp";
-my $sth = $dbh->prepare($query6);
+my $query11 = "DROP TABLE teams_temp";
+my $sth = $dbh->prepare($query11);
 $sth->execute();
 
 
 
 # Now put the names into the riders table. Checks for duplicates.
 
-my $query0 = "CREATE TABLE riders_temp LIKE riders";
-my $sth = $dbh->prepare($query0);
+my $query12 = "CREATE TABLE riders_temp LIKE riders";
+my $sth = $dbh->prepare($query12);
 $sth->execute();
 
-my $query1 = "LOAD DATA INFILE '/tmp/races/new_names.txt' INTO TABLE riders_temp(rider_name)";
-my $sth = $dbh->prepare($query1);
+my $query13 = "LOAD DATA INFILE '/tmp/races/new_names.txt' INTO TABLE riders_temp(rider_name)";
+my $sth = $dbh->prepare($query13);
 $sth->execute();
 
 # Next, take new rider names and add them to the database, making sure to ignore duplicates.
@@ -266,20 +269,20 @@ $sth->execute();
 # it will be ignored and the new version used instead. Otherwise havoc ensues because the slightly
 # different spelling of the name will find no match in the results files.
 
-my $query2 = "INSERT INTO riders(rider_name) SELECT rider_name FROM riders_temp  where rider_name COLLATE utf8_bin NOT IN (SELECT rider_name FROM riders)";
+my $query14 = "INSERT INTO riders(rider_name) SELECT rider_name FROM riders_temp  where rider_name COLLATE utf8_bin NOT IN (SELECT rider_name FROM riders)";
 
-my $sth = $dbh->prepare($query2);
+my $sth = $dbh->prepare($query14);
 $sth->execute();
 
-my $query3 = "DROP TABLE riders_temp";
-my $sth = $dbh->prepare($query3);
+my $query15 = "DROP TABLE riders_temp";
+my $sth = $dbh->prepare($query15);
 $sth->execute();
 
 #Delete temporary files used to populate tables
 
 unlink 
 ("/tmp/races/rider_names.txt",
-"/tmp/races/new_names.txt", 
+# "/tmp/races/new_names.txt", 
 "/tmp/races/rider_nats.txt",
 "/tmp/races/rider_teams.txt");
 
@@ -287,16 +290,16 @@ unlink
 # Now update the rider table with each person's country ID and team ID
 
 
-my $query1 = "SELECT country_id,country from countries INTO OUTFILE '/tmp/races/countries.txt'";
+my $query16 = "SELECT country_id,country from countries INTO OUTFILE '/tmp/races/countries.txt'";
 
-my $sth1 = $dbh->prepare($query1);
+my $sth1 = $dbh->prepare($query16);
 
 $sth1->execute();
 
 
-my $query2 = "SELECT rider_id,rider_name from riders INTO OUTFILE '/tmp/races/riders.txt'";
+my $query17 = "SELECT rider_id,rider_name from riders INTO OUTFILE '/tmp/races/riders.txt'";
 
-my $sth2 = $dbh->prepare($query2);
+my $sth2 = $dbh->prepare($query17);
 
 $sth2->execute();
 
@@ -309,7 +312,7 @@ $sth3->execute();
 
 
 # new_names.txt is used to populate the riders table. It derives these names from stage1.csv
-# The names are then dumped back into riders.txt along with the rider ID they were assigned.
+# The names are then dumped into riders.txt along with the rider ID they were assigned.
 # Thus riders.txt can be relied on to contain exactly the same names, character-for-character, as
 # found in stage1.csv even though there may be multiple slightly different versions (that will 
 # be ignored).
@@ -511,17 +514,17 @@ unlink ("/tmp/races/countries.txt","/tmp/races/teams.txt");
 # Now SQL query to update rider table using the handy upload.txt file.
 #Then go ahead and load stage results.
 
-my $query = "CREATE TABLE riders_temp (rider_id SMALLINT(4) UNSIGNED NOT NULL, country_id SMALLINT(4) UNSIGNED NOT NULL,  team_id SMALLINT(4) UNSIGNED NOT NULL, PRIMARY KEY (rider_id) )";
-my $sth = $dbh->prepare($query);
+my $query19 = "CREATE TABLE riders_temp (rider_id SMALLINT(4) UNSIGNED NOT NULL, country_id SMALLINT(4) UNSIGNED NOT NULL,  team_id SMALLINT(4) UNSIGNED NOT NULL, PRIMARY KEY (rider_id) )";
+my $sth = $dbh->prepare($query19);
 $sth->execute();
 
 
-my $query1 = "LOAD DATA INFILE '/tmp/races/upload.txt' INTO TABLE riders_temp FIELDS TERMINATED BY ',' (rider_id,country_id,team_id)";
-my $sth = $dbh->prepare($query1);
+my $query20 = "LOAD DATA INFILE '/tmp/races/upload.txt' INTO TABLE riders_temp FIELDS TERMINATED BY ',' (rider_id,country_id,team_id)";
+my $sth = $dbh->prepare($query20);
 $sth->execute();
 
-my $query2 = "UPDATE riders,riders_temp SET riders.country_id = riders_temp.country_id WHERE riders.rider_id = riders_temp.rider_id";
-my $sth = $dbh->prepare($query2);
+my $query21 = "UPDATE riders,riders_temp SET riders.country_id = riders_temp.country_id WHERE riders.rider_id = riders_temp.rider_id";
+my $sth = $dbh->prepare($query21);
 $sth->execute();
 
 # Because the team ID is newly created from stage1.csv, it effectively updates previously entered
@@ -529,19 +532,19 @@ $sth->execute();
 # since last event was processed. Also works in reverse (older events added now will show correct
 # team membership at time of that event).
 
-my $query3 = "UPDATE riders,riders_temp SET riders.team_id = riders_temp.team_id WHERE riders.rider_id = riders_temp.rider_id";
-my $sth = $dbh->prepare($query3);
+my $query22 = "UPDATE riders,riders_temp SET riders.team_id = riders_temp.team_id WHERE riders.rider_id = riders_temp.rider_id";
+my $sth = $dbh->prepare($query22);
 $sth->execute();
 
 
-my $query4 = "DROP TABLE riders_temp";
-my $sth = $dbh->prepare($query4);
+my $query23 = "DROP TABLE riders_temp";
+my $sth = $dbh->prepare($query23);
 $sth->execute();
 
 # Just in case we had any blank lines in the upload file
 
-my $query5 = "DELETE FROM riders WHERE rider_name=\"\"";
-my $sth = $dbh->prepare($query5);
+my $query24 = "DELETE FROM riders WHERE rider_name=\"\"";
+my $sth = $dbh->prepare($query24);
 $sth->execute();
 
 $dbh->disconnect;

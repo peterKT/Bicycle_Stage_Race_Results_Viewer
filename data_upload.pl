@@ -139,9 +139,16 @@ $sth01->execute();
 while (my $row = $sth01->fetchrow_arrayref) {
 		
 		$table_columns = @$row[0];
-		$results_input = ($table_columns - 1)/2;
+
+	if ($table_columns == 2) {
+		print "You have not entered an results yet.\n";
+		$results_input = 0;
+#		die "Please try again\n";
+		} else {
+
+		$results_input = ($table_columns - 2) / 2;
 		print "You have already input results for $results_input stages\n";
-		
+		}		
 }
 
 # Fix names in all results files not yet input, i.e. where the stage number is > $results_input
@@ -207,7 +214,7 @@ $start_at = $results_input + 1;
 $check_file_name = "/tmp/races/$race_name/stage$start_at.csv";
 
 if (-e $check_file_name) {
-	print "You have at least one new results file to add. Going ahead.\n";
+	print "You have at least one new results file to add starting at stage $start_at. Going ahead.\n";
 	} else {
 	die "You need to add results for a new stage.\n";
 	}
@@ -256,7 +263,7 @@ while ( $count <= $num_files )
 				if ($_ =~ /\(/ ) {
 					print "Found parens, OK to go ahead.\n";
 				} else {
-				die "Found a line $line_no with no nationality. You need to fix and re-run me.\n";
+				die "Found a line $line_no with no nationality in results for stage $count. You need to fix and re-run me.\n";
 				}
 
 
@@ -348,6 +355,10 @@ while ( $count <= $num_files )
 
 # TEMP suspend proper tab spaces
 
+# This name is mispelled or mutilated in so many different ways that it needs a special check: Jhonatan Manuel Narvaez Prado
+
+
+
 sub check1 {
 	@last_chance = ();
 	@fix_me1 = ();
@@ -399,6 +410,186 @@ sub check1 {
 
 }	# End routine definition
 
+
+
+
+
+
+
+sub check1a {
+	@last_chance = ();
+	@fix_me1 = ();
+
+	# Try matching the first two elements of the name individually; special case for two hard to correct names
+	
+	foreach $elem(@problem_names) {
+		$found_match = 0;
+		$full_name = $elem;
+		@last_chance = split /\s+/, $elem;
+		$name1 = shift(@last_chance);
+		$name2 = shift(@last_chance);
+
+		for $value ( values %good_name )
+  		{
+			print "Checking problem name $full_name against $value using $name1 and $name2 separately.\n";
+			$_ = $value;
+
+			if (/$name1/) {
+				print "MATCH! $name1 matches on $value\n\n"; 
+
+				if (/$name2/) {
+					print "ANOTHER MATCH. By George we've done it. $name2 is also here.\n";
+					print "So we will be using the dictionary name $value for this guy\n";
+					$real_name{$full_name} = $value;
+					$problems = ($problems - 1);
+					print "ONE problems are now $problems in number\n";
+					$found_match++;
+					last; 	# Stop matching
+					} else {
+					print "False Alarm $name2 not here.\n";
+					
+				}
+
+
+
+			}	# CLOSE if name1
+   		}	# CLOSE FOR Value
+
+		# IF Jonnathan Narvaez ever shows up
+
+		if ($name1 == 'Jonnathan' && $name2 == 'Narvaez') {
+			$name1 = 'Jhonnatan';
+			for $value ( values %good_name )
+  			{
+				print "Checking problem name $full_name against $value using $name1 and $name2 separately.\n";
+				$_ = $value;
+
+				if (/$name1/) {
+					print "MATCH! $name1 matches on $value\n\n"; 
+
+					if (/$name2/) {
+						print "ANOTHER MATCH. By George we've done it. $name2 is also here.\n";
+						print "So we will be using the dictionary name $value for this guy\n";
+						$real_name{$full_name} = $value;
+						$problems = ($problems - 1);
+						print "ONE problems are now $problems in number\n";
+						$found_match++;
+						last; 	# Stop matching
+						} else {
+						print "False Alarm $name2 not here.\n";
+					
+					}
+
+
+
+				}	# CLOSE if name1
+   			}	# CLOSE FOR Value
+		}	# CLOSE special case search on Jonnathan Narvaez
+
+
+
+	if ($found_match == 0)
+		{
+			print "Sorry, no matches on both $name1 and $name2. Dumping $full_name into fix_me1\n";
+			push(@fix_me1, $full_name);			
+		} else {
+			print "Match was made\n";
+		}
+
+	}	# CLOSE foreach elem of the problem_names
+
+}	# End routine definition
+
+
+
+
+sub check1b {
+	@last_chance = ();
+	@fix_me1 = ();
+
+	# Try matching the first two elements of the name individually; special case for two hard to correct names
+	
+	foreach $elem(@problem_names) {
+		$found_match = 0;
+		$full_name = $elem;
+		@last_chance = split /\s+/, $elem;
+		$name1 = shift(@last_chance);
+		$name2 = shift(@last_chance);
+
+		for $value ( values %good_name )
+  		{
+			print "Checking problem name $full_name against $value using $name1 and $name2 separately.\n";
+			$_ = $value;
+
+			if (/$name1/) {
+				print "MATCH! $name1 matches on $value\n\n"; 
+
+				if (/$name2/) {
+					print "ANOTHER MATCH. By George we've done it. $name2 is also here.\n";
+					print "So we will be using the dictionary name $value for this guy\n";
+					$real_name{$full_name} = $value;
+					$problems = ($problems - 1);
+					print "ONE problems are now $problems in number\n";
+					$found_match++;
+					last; 	# Stop matching
+					} else {
+					print "False Alarm $name2 not here.\n";
+					
+				}
+
+
+
+			}	# CLOSE if name1
+   		}	# CLOSE FOR Value
+
+		# IF Rüdiger Selig ever shows up
+
+		if ($name1 == 'Rüdiger' && $name2 == 'Selig') {
+			$name1 = 'Rudiger';
+			for $value ( values %good_name )
+  			{
+				print "Checking problem name $full_name against $value using $name1 and $name2 separately.\n";
+				$_ = $value;
+
+				if (/$name1/) {
+					print "MATCH! $name1 matches on $value\n\n"; 
+
+					if (/$name2/) {
+						print "ANOTHER MATCH. By George we've done it. $name2 is also here.\n";
+						print "So we will be using the dictionary name $value for this guy\n";
+						$real_name{$full_name} = $value;
+						$problems = ($problems - 1);
+						print "ONE problems are now $problems in number\n";
+						$found_match++;
+						last; 	# Stop matching
+						} else {
+						print "False Alarm $name2 not here.\n";
+					
+					}
+
+
+
+				}	# CLOSE if name1
+   			}	# CLOSE FOR Value
+		}	# CLOSE special case search on Rüdiger Selig
+
+
+
+	if ($found_match == 0)
+		{
+			print "Sorry, no matches on both $name1 and $name2. Dumping $full_name into fix_me1\n";
+			push(@fix_me1, $full_name);			
+		} else {
+			print "Match was made\n";
+		}
+
+	}	# CLOSE foreach elem of the problem_names
+
+}	# End routine definition
+
+
+
+
 sub check2 {
 
 # Go back and try to match the leftover names by using just the first three letters of
@@ -412,14 +603,14 @@ foreach $elem(@fix_me1) {
 	$found_match = 0;
   	for $value ( values %good_name ) {
   	
-		print "Checking problem partial name taken from $full_name against $value\n";
+		print "\n\nChecking problem partial name taken from $full_name against $value\n";
 		$_ = $value;
 		$match = 0;
 		foreach $elem(@last_chance) {
 			$try_me = substr($elem, 0,3);	
 			if (/$try_me/) { 
 			
-				print "MATCH! $try_me matches on $value\n\n"; 
+				print "\nMATCH! $try_me matches on $value\n\n"; 
 				print "The value of matches for this line is $match plus one\n";
 				$match++;
 				} else {
@@ -743,7 +934,6 @@ foreach $elem(@fix_me4) {
 
 
 
-
 if ($problems != 0) {
 	print "Trying CHECK ONE for $problems problems\n";
 	&check1;
@@ -752,7 +942,21 @@ if ($problems != 0) {
 	}
 
 if ($problems != 0) {
-	print "Trying CHECK TWO to fix $problems not fixed by CHECK ONE\n";
+	print "Trying CHECK ONE-A for $problems problems\n";
+	&check1a;
+	} else {
+	print "First check says No problems with this stage.\n";
+	}
+
+if ($problems != 0) {
+	print "Trying CHECK ONE-B for $problems problems\n";
+	&check1b;
+	} else {
+	print "First check says No problems with this stage.\n";
+	}
+
+if ($problems != 0) {
+	print "Trying CHECK TWO to fix $problems problem(s) not fixed by CHECK ONE\n";
 	&check2;
 	} else {
 	print "Check two says All problems fixed!\n";
@@ -766,29 +970,33 @@ if ($problems != 0) {
 		}
 	&check3;
 	} else {
-	print "No problems: Check three says $problems is zero\n";
+	print "No problems: Check three says problems is zero\n";
 	}
 
 if ($problems != 0) {
 	print "Trying CHECK FOUR for $problems problems\n";
 	&check4;
 	} else {
-	print "No problems: Check four says $problems is zero\n";
+	print "No problems: Check four says problems is zero\n";
 	}
 
 if ($problems != 0) {
 	print "Trying CHECK FIVE for $problems problems\n";
 	&check5;
 	} else {
-	print "No problems:  Check five says$problems is zero\n";
+	print "No problems:  Check five says problems is zero\n";
 	}
 
+
+
+
 if ($problems != 0) {
-	print "Tried everything and you still have $problems  problems: \n";
-	foreach $elem(@fix_me4) {
+	print "Tried everything and you still have $problems problem(s): \n";
+	foreach $elem(@fix_me5) {
 		print "$elem\n";
+		}
 	}
-}
+
 
 # END CHECK PROBLEMS -- Return to proper tab spaces
 
@@ -845,8 +1053,13 @@ if ($problems != 0) {
 			$count++;
   		} else {
 		$error_file = $count;
-		$count = ($num_files + 1);	
-		print "Sorry, you are stuck here until you fix $problems problems\n";
+#		$count = ($num_files + 1);	
+		print "Sorry, you are stuck here until you fix $problems problem(s) noted below in stage $error_file\n";
+
+			foreach $elem(@fix_me5) {
+				print "$elem\n";
+			}
+		print "\n\n";
 		die "The value of count is $count which means you got stopped at a problem name in the stage $error_file file.\n";
   		}
 	}	# CLOSE if the file exists
@@ -886,6 +1099,9 @@ print "We start adding data with the file for stage $start_at\n";
 
 
 # Add appropriate number of fields to event table
+
+#my $query0 = "CREATE TABLE $race_name (rider_id SMALLINT(4) UNSIGNED NOT NULL, total_stages SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', s1 SMALLINT(4) UNSIGNED NOT NULL DEFAULT '0', t1 TIME, PRIMARY KEY (rider_id) )";
+
 
 $counter3 = $start_at;
 $counter4 = 1;
@@ -1018,13 +1234,15 @@ while ( $counter2 <= $new_stages )
 
 		$rider_no = $rider_id{$full_name};
 
-
+# Need to insert MYSQL directive to drop the relevant columns
 
 		if (not defined ($rider_no) ) {
 				
 			print "\n\nRider ID NOT DEFINED on line $line_no.\n";
 			print "This line has a name: $full_name, country is $nat, at position $position and rider number: $rider_no\n";
 			print "If any of these three values is EMPTY or erroneous, you need to fix the cause.\n";
+			print "Then delete the incomplete columns in the races database (including this stage and those after)\n";
+			print "and re-rerun me.\n";
 			print "The stage number is $stage_no.\n";
 			die "Upload failed. Note clue above; the error should be on a nearby line.\n";
 		}
@@ -1110,4 +1328,4 @@ unlink ("/tmp/races/riders2.txt");
 print "Counter2 is $counter2 and stage_no is $stage_no and new stages is $new_stages\n";
 print "Start_at is $start_at and upload_file_no is $upload_file_no\n";
 print "The dictionary has $total_names total names.\n";
-print "The value of count on line 316 is $debug1 and the value of problems is $debug2 but that might just be the last time through.\n";
+print "The value of count (the stage number) on line 346 is $debug1 \nand the value of problems is $debug2 but that might just be the last time through.\nLooking at it again problems is $problems.\n";
