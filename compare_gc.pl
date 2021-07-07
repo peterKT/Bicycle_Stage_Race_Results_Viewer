@@ -2,6 +2,17 @@
 use DBI;
 use Term::ANSIColor;
 
+# binmode needed to get correct diacritics
+# still need to fix spacing problem they cause
+binmode STDOUT, ":utf8";
+
+# Fixed spacing by removing all the steps needed previously to correct
+# for spacing errors introduced by diacritics. For some reason, they are
+# no longer needed. Therefore this version removes all references to the length
+# of querry values in the SELECT statements and the coresponding use of these 
+# values in the various operatations previously needed to fix spacing problems.
+
+
 #OUTPUT STAGE GC LIST WITH COMPARISON TO 
 #PREVIOUS STAGE
 
@@ -9,7 +20,7 @@ print "\n\tTo identify the event you are interested in, I need to access the dat
 print "\tusing an account with at least read permissions. Please enter the user name here: \n";  
 $admin_name = <STDIN>;
 chomp ($admin_name);
-print "\n\tNow please provide the password: \n";
+print "\nNow please provide the password: \n";
 $admin_pw = <STDIN>;
 chomp ($admin_pw);
 
@@ -84,7 +95,7 @@ $sth01->execute();
 
 while (my $row = $sth01->fetchrow_arrayref) 
 	{
-		$total_stages = (@$row[0] - 1) / 2;
+		$total_stages = (@$row[0] - 2) / 2;
 	}
 
 $get_another = 'y';
@@ -105,7 +116,7 @@ if ($stage_no > 1 && $stage_no < ($total_stages + 1) ) {
 
 print "Great, you want the results for stage $stage_no. Here you go: \n\n";
 
-my $query = "SELECT rider_name, country, team, s$stage_no, t$stage_no, s$previous_stage, riders.rider_id, LENGTH(rider_name), CHAR_LENGTH(rider_name), LENGTH(CONVERT(team USING 'utf8')), CHAR_LENGTH(CONVERT(team USING 'utf8')) FROM riders, countries, teams, $event WHERE s$stage_no != 0 AND riders.rider_id = $event.rider_id AND countries.country_id = riders.country_id AND teams.team_id = riders.team_id ORDER BY s$stage_no";
+my $query = "SELECT rider_name, country, team, s$stage_no, t$stage_no, s$previous_stage, riders.rider_id FROM riders, countries, teams, $event WHERE s$stage_no != 0 AND riders.rider_id = $event.rider_id AND countries.country_id = riders.country_id AND teams.team_id = riders.team_id ORDER BY s$stage_no";
 
 
 my $sth = $dbh->prepare($query);
@@ -138,26 +149,14 @@ while (my $row = $sth->fetchrow_arrayref) {
 	$compare_position{@$row[6]} = $diff2;	# assign diff value to hash with rider ID as the key	
 
 # Figure out the number of spaces to assign column 1. Normally $name_space unless diacritics mess it up.
+# Note: This step deprecated. Spacing comes out okay with intoduction of binmode definition at the top of this file.
+# Therefore can simply use the value in $name_space and $team_space.
 
-$length_name = @$row[7];
-$char_length_name = @$row[8];
-if ($length_name == $char_length_name) 
-	{
-		$this_name_space = $name_space;
-	} else {
-		$this_name_space = $name_space + ($length_name - $char_length_name);
-	}
+$this_name_space = $name_space;
 
 # Figure out the number of spaces to assign column 3. Normally $name_space unless diacritics mess it up.
 
-$length_team = @$row[9];
-$char_length_team = @$row[10];
-if ($length_team == $char_length_team) 
-	{
-		$this_team_space = $team_space;
-	} else {
-		$this_team_space = $team_space + ($length_team - $char_length_team);
-	}
+$this_team_space = $team_space;
 
 # Alternative: printf REPORT 
 if ($diff == 0) {
@@ -204,25 +203,11 @@ foreach $elem(sort by_number keys %compare_position) {
 	while (my $row = $sth->fetchrow_arrayref) 
 	{
 
-# Again, fix space confusion when diacritics appear in names.
- 
-$length_name = @$row[3];
-$char_length_name = @$row[4];
-if ($length_name == $char_length_name) 
-	{
-		$this_name_space = $name_space;
-	} else {
-		$this_name_space = $name_space + ($length_name - $char_length_name);
-	}
+# Again, fix space confusion when diacritics appear in names. No longer needed. Can go ahead and simply
+# use $name_space and $team_space. May fix later.
 
-$length_team = @$row[5];
-$char_length_team = @$row[6];
-if ($length_team == $char_length_team) 
-	{
+		$this_name_space = $name_space;
 		$this_team_space = $team_space;
-	} else {
-		$this_team_space = $team_space + ($length_team - $char_length_team);
-	}
 
 
 #	printf "The sorted-by-value key is $elem which is the ID for %$name_spaces and the value is $compare_position{$elem}\n", @$row[0];
