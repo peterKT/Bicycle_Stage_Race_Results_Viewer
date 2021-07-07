@@ -11,6 +11,18 @@
 # adding countries and teams not seen before, updating rider's team membership, and preparing a results
 # table.
 
+# NOTE: This version replaces 'COLLATE utf8_bin' with 'COLLATE utf8mb4_bin'. Evidently the default character
+# set for this version of MariaDB is utf8mb4 not utf8 so the collation definition is utf8mb4_bin not utf8_bin.
+# Unfortunately this destroys the rendering the diacritics. May need to tell database to go back to utf8 somehow.
+
+# Fixed above-mentioned problem by specifying: binmode STDOUT, ":utf8";
+# in the compare_gc.pl script that displays data from the database. But this
+# destroyed the spacing caused by diacritics (they insert a mystery space) that the previous
+# script had fixed by fiddling with the lengths of the outputs, comparing them, then doing arithmetic.
+
+# The spacing problem was finally fixed in compare_gc.pl by removing the previously needed LENGTH values
+# in the querries which were used to calculate spacing adjustments in the script where those sections with
+# likewise deleted. Simply using the binmode definition fixed the spacing problems introduced by diacritics.
 
 use DBI;
 
@@ -269,7 +281,7 @@ $sth->execute();
 # it will be ignored and the new version used instead. Otherwise havoc ensues because the slightly
 # different spelling of the name will find no match in the results files.
 
-my $query14 = "INSERT INTO riders(rider_name) SELECT rider_name FROM riders_temp  where rider_name COLLATE utf8_bin NOT IN (SELECT rider_name FROM riders)";
+my $query14 = "INSERT INTO riders(rider_name) SELECT rider_name FROM riders_temp  where rider_name COLLATE utf8mb4_bin NOT IN (SELECT rider_name FROM riders)";
 
 my $sth = $dbh->prepare($query14);
 $sth->execute();

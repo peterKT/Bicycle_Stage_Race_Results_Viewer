@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+
+# This version adds default values to both the countries and teams tables to avoid an error
+
 use DBI;
 print "To create the database, I need to know an MySQL administrator\n";
 print "name and password. Please enter the admin name here: \n";  
@@ -35,8 +38,8 @@ my $sth = $dbh->prepare($query2);
 $sth->execute();
 
 my $query3 = "CREATE TABLE riders (rider_id SMALLINT(4) UNSIGNED NOT NULL AUTO_INCREMENT, 
-rider_name VARCHAR(40) NOT NULL DEFAULT 'Unknown', country_id SMALLINT(4) UNSIGNED NOT NULL, 
-team_id SMALLINT(4) UNSIGNED NOT NULL, PRIMARY KEY (rider_id) )";
+rider_name VARCHAR(40) NOT NULL DEFAULT 'Unknown', country_id SMALLINT(4) UNSIGNED NOT NULL DEFAULT 0, 
+team_id SMALLINT(4) UNSIGNED NOT NULL DEFAULT 0, PRIMARY KEY (rider_id) )";
 
 
 my $sth = $dbh->prepare($query3);
